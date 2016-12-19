@@ -1,0 +1,133 @@
+Does transmission type affect fuel efficiency?
+
+Rashmitha Rallapalli, Regression Models, Coursera Peer Assessment 2016
+
+Executive Summary
+
+This week Motor Trend is going to look at the affect of automatic transmissions on fuel efficiency. To do this we will use a data set that examines the fuel efficency and 10 aspects of automobile design and performance for 32 automobiles (all 1973 - 1974 models). Out of the 32 cars, 13 have manual transmissions and 19 have automatic transmissions.
+
+In this data set on average there is a difference in fuel efficency depending on transmission type such that on average manual vehicles achieve a fuel effiency of 7.2 miles per gallon more than automatic vehicles.
+
+However, transmission type is not a particularly good predictor of fuel efficiency. By applying analysis of variance (ANOVA) to the dataset, calculating the correlations between the variables, and building a number of models, we were able to identify that the number of cylinders and the weight of the automobile are good predictors of fuel efficiency, achieving an adjusted R squared of 0.82. If we add transmission type to this model, then the difference in fuel effiency for a manual transmission is much smaller, just 0.18 miles per gallon for a vehicle with the same weight and number of cylinders.
+
+Therefore we conclude that number of cylinders and weight are good predictors of fuel efficiency, but transmission type is not.
+
+Method
+
+The data set
+
+The data set was extracted from the 1974 edition of Motor Trend US Magazine and it deals with 1973 - 1974 models. It consists of 32 observations on 11 variables:
+
+mpg: Miles per US gallon
+cyl: Number of cylinders
+disp: Displacement (cubic inches)
+hp: Gross horsepower
+drat: Rear axle ratio
+wt: Weight (lb / 1000)
+qsec: 1 / 4 mile time
+vs: V/S
+am: Transmission (0 = automatic, 1 = manual)
+gear: Number of forward gears
+carb: Number of carburetors
+Results
+
+The exploratory analysis of the data is described in Appendix. Based on the exploratory analysis, we selected three models to explore the question posed by this report:
+
+data(mtcars)
+fit3 <- lm(mpg ~ cyl + wt, data = mtcars)
+fit7 <- lm(mpg ~ am, data = mtcars)
+fit8 <- lm(mpg ~ cyl + wt + am, data=mtcars)
+Model 3 relates the number of cylinders and the weight to fuel efficency and achieves adjusted R squared of r summary(fit3)$adj.r.squared.
+Model 7 relates the type of type transmission to fuel efficiency and achieves adjusted R squared of r summary(fit7)$adj.r.squared.
+Model 8 relates the number of cylinders, the weight and the type of transmission to fuel effiency and achieves adjusted R squared of r summary(fit8)$adj.r.squared.
+First we will examine the coefficients for model 3:
+
+print(xtable(fit3), type="html")
+Here we see as the number of cylinders increase, assuming weight stays the same, for one additional cylinder fuel efficiency decreases by 1.5 miles per gallon. We also see that as the weight increases by 1000 lb, assuming the number of cylinders stays the same, the fuel efficiency decreases by 3.2 miles per gallon. The intercept for fuel efficiency is 39.7 miles per gallon, for a non-existant car with 0 weight and no cylinders - the highest actual effiency car in the dataset is the Toyota Corolla which achieves 33.9 mpg.
+
+Second we will consider the relationship between the type of transmission and fuel efficiency in Model 7:
+
+fit7 <- lm(mpg ~ am, data = mtcars)
+print(xtable(fit7), type="html")
+The coefficient for transmission indicates that cars with a manual transmission achieve a fuel effiency of 7.24 miles per gallon higher than cars with an automatic transmission. However this model using transmission achieves an adjusted R squared value of r summary(fit7)$adj.r.squared, which is much worse than model 3, so transmission is much poorer predictor of fuel efficiency than the number of cylinders and weight.
+
+Third we will consider the relationship beween type of transmission and fuel efficiency in Model 8:
+
+print(xtable(fit8), type="html")
+If we look at the coefficients, we see that compared to model 7 the coefficient for transmission type has decreased, indicating that for the same number of cylinders and car weight, this model predicts that a car with a manual transmission would achieve an improvement in fuel efficiency of just 0.18 miles per gallon over an automatic transmission. This model achieved an adjusted R squared value of r summary(fit8)$adj.r.squared. This is slightly worse than model 3.
+
+Finally we will compare predictions and their confidence intervals from model 3 and model 8. We will predict the fuel efficiency in mpg for a vehicle with the mean weight and mean number of cylinders in the data set using model 3:
+
+nd1 = data.frame(wt = mean(mtcars$wt), cyl = mean(mtcars$cyl), am=0)
+nd2 = data.frame(wt = mean(mtcars$wt), cyl = mean(mtcars$cyl), am=1)
+predict(fit3, newdata = nd1, level=0.95, interval="confidence")
+Next we will predict the fuel efficency for the same vehicle, only first automatic transmission, and second with manual transmission, using model 8:
+
+predict(fit8, newdata = nd1, level=0.95, interval="confidence")
+predict(fit8, newdata = nd2, level=0.95, interval="confidence")
+We see there is a small difference between the predictions of model 3 (20.09) and model 8 (20.2), which is much smaller than the confidence intervals. Therefore we propose the transmission type makes a negligible difference to the fuel efficiency.
+
+Conclusion
+
+Although in this data set on average manual vehicles achieve a fuel effiency of 7.2 miles per gallon more than automatic vehicles, transmission type is not a particularly good predictor of fuel efficiency. We were able to identify that the number of cylinders and the weight of the automobile are good predictors of fuel efficiency, achieving an adjusted R squared of 0.82. If we add transmission type to this model, then the difference in fuel effiency for a manual transmission is much smaller, just 0.18 miles per gallon for a vehicle with the same weight and number of cylinders. Therefore we conclude that number of cylinders and weight are good predictors of fuel efficiency, but transmission type is not.
+
+Appendix - Exploratory Data Analysis
+
+First we will use analysis of variance to investigate the relationship between fuel effiency (mpg) and the other variables:
+
+data(mtcars)
+options(contrasts=c("contr.sum", "contr.poly"))
+aov.1 <- aov(mpg ~ ., data=mtcars)
+library(xtable)
+print(xtable(aov.1), type="html")
+We see that the number of cylinders (cyl), the weight (wt) and the displacement (disp) are all significant at the 0.05 level. Next we will attempt to identify possible confounders by looking at the correlations between these variables:
+
+c <- cor(mtcars)
+c[upper.tri(c)] <- NA
+print(xtable(c), type="html")
+Here we see that there is a strong relationship between displacement and cylinders (0.9), displacement and weight (0.89) and a slightly less strong relationship between weight and cylinders (0.78). The next step is build a number of different regression models to investigate whether these variables can be used to predict fuel efficency.
+
+Fitting multiple regression models
+
+Next we build a number of models, using combinations of the variables we identified in the previous section:
+
+fit1 <- lm(mpg ~ cyl, data=mtcars)
+fit2 <- lm(mpg ~ wt, data = mtcars)
+fit3 <- lm(mpg ~ cyl + wt, data = mtcars)
+fit4 <- lm(mpg ~ disp, data = mtcars)
+fit5 <- lm(mpg ~ disp + cyl, data = mtcars)
+fit6 <- lm(mpg ~ disp + cyl + wt, data = mtcars)
+The models achieve the following adjusted R squared values:
+
+Model 1: Cylinders to fuel efficiency r summary(fit1)$adj.r.squared.
+Model 2: Weight to fuel efficiency r summary(fit2)$adj.r.squared.
+Model 3: Cylinders and weight to fuel efficiency r summary(fit3)$adj.r.squared.
+Model 4: Displacement to fuel efficiency r summary(fit4)$adj.r.squared.
+Model 5: Displacement and cylinders to fuel efficiency r summary(fit5)$adj.r.squared.
+Model 6: Displacement, cylinders and weight to fuel efficiency r summary(fit6)$adj.r.squared.
+Clearly model 3 has the best adjusted R squared value, and even though model 6 has an additional term, displacement, it achieves a slightly lower adjusted R squared value. This agrees with our previous analysis that although cylinders, weight and displacement all have a signficant relationship to fuel efficency, displacment is strongly related to cylinders and weight so is a confounder and does not impart any additional information.
+
+Next we check the diagnostic plots of the residuals for model 3.
+
+par(mfrow=c(2,2)) 
+plot(fit3)
+Figure 1: Diagnostic plots of residuals for model 3
+
+The plots show that there are a see a number of outliers in the dataset, specifically the Toyota Corolla, Toyota Corona, Fiat 128 and Chrysler Imperial. The Toyota Corolla and Fiat 128 achieve a very high fuel efficiency (33.9 and 32.4 mpg respectively), whereas the Imperial has low fuel efficency (14.7 mpg). The Toyota Corona achieves medium fuel efficiency (24.9 mpg).
+
+Now we will consider the relationship between the type of transmission and fuel efficiency:
+
+boxplot(mpg ~ am, data=mtcars, xlab = "Transmission", ylab = "MPG", col=terrain.colors(2))
+title(main = "Figure 2: Boxplot of transmission against MPG")
+legend("topleft", inset=.05, title="Transmission type", c("automatic", "manual"), fill=terrain.colors(2), horiz=TRUE)
+Figure 2 shows that on average there is a difference between the fuel efficiency depending on transmission type.
+
+fit7 <- lm(mpg ~ am, data = mtcars)
+print(xtable(fit7), type="html")
+If we build a linear regression model that predicts the fuel efficiency solely based on transmission, then the coefficient indicates that cars with a manual transmission achieve a fuel effiency of 7.24 miles per gallon higher than cars with an automatic transmission. However this model using transmission achieves an adjusted R squared value of r summary(fit7)$adj.r.squared, which is much worse than model 3, so transmission is much poorer predictor of fuel efficiency than the number of cylinders and weight.
+
+Next we build a model that predicts the fuel efficiency using the number of cylinders, the weight and the transmission type:
+
+fit8 <- lm(mpg ~ cyl + wt + am, data=mtcars)
+print(xtable(fit8), type="html")
+The model using cylinders, weight and transimission achieved an adjusted R squared value of r summary(fit8)$adj.r.squared. This is slightly worse than model 3, that did not use transmission. If we look at the coefficients, we see that the coefficient for transmission type has decreased, indicating that for the same number of cylinders and car weight, this model predicts that a car with a manual transmission would achieve an improvement in fuel efficiency of just 0.1765 miles per gallon.
